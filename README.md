@@ -100,7 +100,7 @@ Authenticated member surface. Lives in `/members/`.
 | Feature | Route | What it does | Status |
 |---|---|---|---|
 | Cafe menu | `/members/cafe.html` | Browse menu, add to cart, checkout | |
-| Cafe order detail | `/members/cafe-order.html` | Single-order status + pickup instructions | |
+| Cafe order detail | `/members/cafe-order.html` | Single-order status + pickup instructions; includes "Reprint labels" button for the full order and per line item | |
 | Cafe order history | `/members/cafe-orders.html` | List of past orders | |
 | Loyalty (stars) | `/members/loyalty.html` | Stars balance, milestones, redemption rules; earned via cafe | |
 
@@ -179,7 +179,9 @@ Staff-facing surface. Reachable at `https://sgf.work/admin/`. Role gating is enf
 | Feature | Route | What it does | Required role |
 |---|---|---|---|
 | Cafe products | `/admin/cafe-products.html` | Menu items, pricing, inventory | any staff |
-| Cafe orders | `/admin/cafe-orders.html` | Barista/queue view of incoming orders | any staff |
+| Cafe orders | `/admin/cafe-orders.html` | Barista/queue view of incoming orders; includes "Reprint labels" button per order and per line item | any staff |
+| Cafe label printing | `/admin/cafe-orders.html` | Auto-prints one 2"×1" thermal label per item (quantity-expanded) on order confirmation; ZPL for Zebra ZD410/ZD420, raster for Brother QL, PDF fallback; per-station printer assignment; offline queue with retry and operator banner; "Print sample label" button in printer settings | any staff |
+| Cafe label printer settings | `/admin/settings.html` (label-printer section) | Per-location config: enable/disable auto-print, default printer, fields to include (order #, customer name, modifiers, timestamp, 3-letter order code, QR), darkness, label stock size (default 2"×1", 2"×1.25" override) | admin, owner |
 | Cafe loyalty | `/admin/cafe-loyalty.html` | Manage loyalty/rewards rules | any staff |
 
 ### Platform config
@@ -252,6 +254,7 @@ Capabilities that aren't user-facing pages but are real features.
 | **URL shortener** | `netlify/functions/shorten.mjs` | `/s/:code` redirects |
 | **Outbound webhooks** | `netlify/functions/_lib/webhooks.mjs`, `webhook-deliver.mjs` | Configurable in `/admin/webhooks.html` |
 | **PDF generation** | `netlify/functions/generate-agreement-pdf.mjs`, `js/admin-member-statement-pdf.js`, `js/admin-incident-pdf.js`, `js/ticket-pdf.js` | `pdf-lib` for agreements; client-side renders for statements, incidents, tickets |
+| **Label generation** | `netlify/functions/cafe-label.mjs`, `js/cafe-label-print.js` | Generates 2"×1" thermal labels for cafe orders — one per item (quantity-expanded); ZPL/EPL output for Zebra printers, raster PNG for Brother QL, PDF fallback for generic printers; label layout: customer first name + 3-letter order code (large/bold), item name + size, modifiers (wrapped/truncated with ellipsis), item index of total + timestamp, channel tag (POS/WEB/APP/KIOSK); UTF-8 (accents, CJK); latency target <500 ms from order confirmation to print-job dispatch |
 | **Rate limiting** | `netlify/functions/_lib/rate-limit.mjs`, `_api/rate-limit.mjs` | IP/user throttling on public + internal endpoints |
 | **Idempotency** | `netlify/functions/_api/idempotency.mjs` | Idempotency-key dedupe on mutating API calls |
 | **Audit logging** | `netlify/functions/_lib/audit.mjs` | Surface in `/admin/audit.html` |
